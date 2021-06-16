@@ -138,7 +138,7 @@ namespace DeviceConfig
 		int bytes_written = _prefs.putBytes(DEVICE_CONFIG_NVS_NAMESPACE_NAME, &_current_config, sizeof(_current_config));
 		if(bytes_written != sizeof(_current_config))
 		{
-			debug_print(F("Could not write config to NVS. Bytes written: "));
+			debug_print_e(F("Could not write config to NVS. Bytes written: "));
 			debug_println(bytes_written, DEC);
 			debug_print(F("Expected: "));
 			debug_println(sizeof(_current_config), DEC);

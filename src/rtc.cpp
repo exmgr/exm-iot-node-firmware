@@ -57,6 +57,16 @@ namespace RTC
     {
         debug_println(F("Syncing RTC"));
 
+        enum TIME_SOURCE
+        {
+            TIME_SOURCE_OTHER,
+            TIME_SOURCE_NTP,
+            TIME_SOURCE_HTTP,
+            TIME_SOURCE_GSM
+        };
+
+        TIME_SOURCE time_source = TIME_SOURCE_OTHER;
+
         // For log
         uint32_t tstamp_before_sync = get_timestamp();
 
@@ -80,6 +90,8 @@ namespace RTC
                 debug_println(F("System time synced with NTP."));
                 Utils::serial_style(STYLE_RESET);
                 ret = RET_OK;
+
+                time_source = TIME_SOURCE_NTP;
             }
             else
             {
@@ -94,6 +106,8 @@ namespace RTC
                     debug_println(F("System time synced with HTTP."));
                     Utils::serial_style(STYLE_RESET);
                     ret = RET_OK;
+
+                    time_source = TIME_SOURCE_HTTP;
                 }
                 else
                 {
@@ -120,6 +134,7 @@ namespace RTC
                             Utils::serial_style(STYLE_BLUE);
                             debug_println(F("System time synced with GSM time."));
                             Utils::serial_style(STYLE_RESET);
+                            time_source = TIME_SOURCE_GSM;
                             ret = RET_OK;
                         }
                         else
@@ -151,12 +166,11 @@ namespace RTC
             set_external_rtc_time(time(NULL));
         }
 
-        // Log after finishing so the log entry has the correct timestamp
-        Log::log(Log::RTC_SYNC, tstamp_before_sync);
+        // Log AFTER finishing so the log entry has the correct timestamp
+        Log::log(Log::RTC_SYNC, tstamp_before_sync, time_source);
 
         // Keep track of last time sync, failed or not
         _last_sync_tick = millis();
-        
 
         return ret;
     }
@@ -506,14 +520,6 @@ namespace RTC
     {
         return _last_sync_tick;
     }
-
-     /******************************************************************************
-     * Reset last sync tick
-     *****************************************************************************/
-    void reset_last_sync_tick()
-    {
-        _last_sync_tick = 0;
-    }    
 
     /******************************************************************************
     * Check timestamp for validity by comparing to a recent tstamp

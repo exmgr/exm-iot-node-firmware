@@ -91,6 +91,14 @@ namespace Flash
 	{
 		Utils::print_separator(F("Flash memory contents"));
 
+		debug_print(F("Size: "));
+		debug_print(SPIFFS.totalBytes());
+		debug_println("bytes");
+
+		debug_print(F("Free: "));
+		debug_print(SPIFFS.totalBytes() - SPIFFS.usedBytes());
+		debug_println("bytes");
+
 		if(Flash::mount() != RET_OK)
 		{
 		    return;
@@ -104,6 +112,8 @@ namespace Flash
 		}
 
 		File cur_file;
+
+		int count = 0;
 		
 		while(cur_file = root.openNextFile())
 		{
@@ -114,7 +124,12 @@ namespace Flash
 			debug_print(cur_file.size());
 			debug_print(F("]"));
 			debug_println();
+
+			count++;
 		}
+
+		debug_print(F("Count: "));
+		debug_println(count, DEC);
 
 		Utils::print_separator(F("End flash memory contents"));
 	}

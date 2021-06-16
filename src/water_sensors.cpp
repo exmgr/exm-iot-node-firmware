@@ -1,6 +1,7 @@
 #include "water_sensors.h"
 #include "aquatroll.h"
 #include "water_level.h"
+#include "water_presence.h"
 #include "rtc.h"
 #include "utils.h"
 #include "log.h"
@@ -150,9 +151,9 @@ namespace WaterSensors
 
 				if(ret_level != RET_OK)
 				{
-					// Utils::serial_style(STYLE_RED);
-					debug_print(F("Failed to read water level sensor."));
-					// Utils::serial_style(STYLE_RESET);
+					debug_print_e(F("Failed to read water level sensor."));
+
+					Log::log(Log::WATER_LEVEL_MEASURE_FAILED, WaterLevel::get_last_error());
 
 					if(tries > 1)
 					{
@@ -170,14 +171,24 @@ namespace WaterSensors
 					}
 				}
 				else
+				{
 					break;
+				}
 			}while(--tries);
 		
 			// Log possible error
-			if(ret_level != RET_OK)
-			{
-				Log::log(Log::WATER_LEVEL_MEASURE_FAILED);
-			}
+			// if(ret_level != RET_OK)
+			// {
+			// 	Log::log(Log::WATER_LEVEL_MEASURE_FAILED);
+			// }
+		}
+
+		//
+		// Read water presence sensor
+		//
+		if(FLAGS.WATER_PRESENCE_SENSOR_ENABLED)
+		{
+			WaterPresence::measure(&data);
 		}
 
 		WaterSensors::off();

@@ -39,11 +39,16 @@ DataStore<TStruct>::DataStore(const char *dir_path, int max_entries_per_file)
 template <class TStruct>
 RetResult DataStore<TStruct>::add(TStruct *data)
 {
-    // Buffer full?
+    // Buffer full? Commit it to flash and clear
     if (_buffer_element_count >= DATA_STORE_BUFFER_ELEMENTS)
     {
         // Commit to flash
-        commit();
+        if(commit() != RET_OK)
+		{
+			// When commiting fails, empty buffer and log this event
+			clear_buffer();
+			Log::log(Log::DATA_STORE_COMMIT_FAILED);
+		}
 
         debug_println(F("Data store full, commiting and erasing."));
     }
@@ -56,6 +61,20 @@ RetResult DataStore<TStruct>::add(TStruct *data)
 	memcpy(&new_entry.data, data, sizeof(TStruct));
 
 	// Copy new entry to buffer
+	// debug_print_i(F("Buffer size: "));
+	// debug_println(sizeof(_buffer), DEC);
+	// debug_print_i(F("Element: "));
+	// debug_println(_buffer_element_count, DEC);
+	// debug_print_i(F("Element size: "));
+	// debug_println(sizeof(new_entry), DEC);
+
+	Serial.flush();
+
+	if(_buffer_element_count >= DATA_STORE_BUFFER_ELEMENTS)
+	{
+		return RET_ERROR;
+	}
+
     memcpy((void *)&_buffer[_buffer_element_count], &new_entry, sizeof(new_entry));
 
     _buffer_element_count++;	
@@ -86,8 +105,7 @@ RetResult DataStore<TStruct>::commit()
 	}
 	
 	// debug_print(F("File: "));
-	// debug_println(_current_data_file_path);
-
+	// debug_println(_current_data_file_path)
 	File f;
 
 	// Counter of entries left to write to flash
@@ -249,9 +267,9 @@ const char* DataStore<TStruct>::get_dir_path() const
 }
 
 /******************************************************************************
- * Update path of file that next write will be done to. First try to find a 
- * file that has still space left (didn't reach max element per file limit)
- * If failed, create a new file.
+ * Update path of file where the next write operation will take
+ * First try to find a  file that has still space left (didn't reach max 
+ * element per file limit). If failed, create a new file.
  ******************************************************************************/
 template <class TStruct>
 RetResult DataStore<TStruct>::update_current_data_file_path()
@@ -345,6 +363,29 @@ RetResult DataStore<TStruct>::update_current_data_file_path()
 
 		return RET_OK;
 	}
+}
+
+template <typename TStruct>
+File DataStore<TStruct>::open_file()
+{
+	// TODO: Not implemented
+}
+
+template <typename TStruct>
+RetResult DataStore<TStruct>::cleanup_store()
+{
+	debug_print_i(F("Cleaning up store: "));
+	debug_println(_dir_path);
+
+	File dir = SPIFFS.open(_dir_path);
+	if(!dir)
+	{
+		debug_println_e(F("Could not open store dir."));
+		return RET_ERROR;
+	}
+
+	// TODO: Not implemented
+
 }
 
 // Forward declarations

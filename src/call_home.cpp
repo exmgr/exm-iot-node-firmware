@@ -75,13 +75,9 @@ namespace CallHome
 
 		Battery::log_adc();
 		Battery::log_solar_adc();
+		Log::log(Log::BATTERY_MDDE, Battery::get_last_mode());
 
 		Log::log(Log::Code::FS_SPACE, SPIFFS.usedBytes(), SPIFFS.totalBytes() - SPIFFS.usedBytes());
-
-		Utils::serial_style(STYLE_BLUE);
-		Utils::print_separator(F("FILES BEFORE CALLING HOME"));
-		Flash::ls();
-		Utils::serial_style(STYLE_RESET);
 
 		GSM::on();
 		if(GSM::connect_persist() != RET_OK)
@@ -100,11 +96,11 @@ namespace CallHome
 			uint32_t last_sync_tick = RTC::get_last_sync_tick();
 			uint32_t mins_since_last_tick = ((millis() - last_sync_tick) / 1000 / 60);
 			
-			if(last_sync_tick != 0 && (mins_since_last_tick >= RTC_AUTOSYNC_INTERVAL_MIN))
+			if(mins_since_last_tick >= RTC_AUTOSYNC_INTERVAL_MIN)
 			{
 				debug_println_i(F("RTC auto sync"));
 				RTC::sync();
-				RTC::reset_last_sync_tick();
+				Log::log(Log::RTC_SYNC, 0, 1);
 			}
 		}
 
@@ -151,12 +147,19 @@ namespace CallHome
 		//
 		if(FO_SOURCE == FO_SOURCE_SNIFFER)
 		{
+			Serial.println(F("Commiting FO sniffer data."));
 			FoSniffer::commit_buffer();
 		}
 		else if(FO_SOURCE == FO_SOURCE_UART)
 		{
+			Serial.println(F("Commiting FO UART data."));
 			FoUart::commit_buffer();
 		}
+
+		Utils::serial_style(STYLE_BLUE);
+		Utils::print_separator(F("FILES BEFORE SUBMITTING TELEMETRY"));
+		Flash::ls();
+		Utils::serial_style(STYLE_RESET);
 
 		//
 		// Submit all telemetry from data store
@@ -623,14 +626,14 @@ namespace CallHome
 		// dummy_entry.wind_speed = 2;
 		// FoData::add(&dummy_entry);
 
-		// dummy_entry.hum = 33;
-		// dummy_entry.temp = 24;
-		// dummy_entry.timestamp = RTC::get_timestamp();
-		// dummy_entry.light = 134500;
-		// dummy_entry.solar_radiation = 1363;
-		// dummy_entry.wind_dir = 143;
-		// dummy_entry.wind_gust = 164;
-		// dummy_entry.wind_speed = 54;
+		// dummy_entry.hum = 99;
+		// dummy_entry.temp = 66;
+		// dummy_entry.timestamp = RTC::get_timestamp()+1;
+		// dummy_entry.light = 663;
+		// dummy_entry.solar_radiation = 667;
+		// dummy_entry.wind_dir = 66;
+		// dummy_entry.wind_gust = 66;
+		// dummy_entry.wind_speed = 6;
 		// FoData::add(&dummy_entry);
 		/////////
 
@@ -687,7 +690,7 @@ namespace CallHome
 					HttpRequest http_req(GSM::get_modem(), IPFS_MIDDLEWARE_URL);
 					http_req.set_port(IPFS_MIDDLEWARE_PORT);
 
-					debug_print(F("Submitting CID to: "));
+					debug_print(F("Submitting CID to Middleware: "));
 					debug_println(data_buff);
 					
 					RetResult ret = http_req.post(data_buff, NULL, 0, "application/json", NULL, 0);
@@ -697,6 +700,16 @@ namespace CallHome
 					{
 						debug_println_e(F("CID submission failed."));
 					}				
+					data_buff[0] = '\0';
+
+					//
+					// Submit hash to thingsboard
+					//
+					Utils::build_ipfs_file_json(ipfs_file.hash, tstamp, data_buff, sizeof(data_buff));
+					Serial.println(F("TB JSON: "));
+					Serial.println(data_buff);
+					submit_tb_telemetry(data_buff, strlen(data_buff));
+
 					data_buff[0] = '\0';
 				}
 				else
@@ -831,7 +844,9 @@ namespace CallHome
 			(FLAGS.MEASURE_DUMMY_WATER_LEVEL << 14) | 
 			(FLAGS.MEASURE_DUMMY_WEATHER << 15) | 
 			(FLAGS.EXTERNAL_RTC_ENABLED << 16) | 
-			(FLAGS.SOLAR_CURRENT_MONITOR_ENABLED << 17)
+			(FLAGS.SOLAR_CURRENT_MONITOR_ENABLED << 17) | 
+			(FLAGS.RTC_AUTO_SYNC << 18) | 
+			(FLAGS.IPFS << 19)
 		;
 
 		return bits;

@@ -17,6 +17,11 @@ namespace WaterLevel
 	RetResult measure_maxbotix_serial(WaterSensorData::Entry *data);
 	RetResult measure_dfrobot_pressure_analog(WaterSensorData::Entry *data);
 	RetResult measure_dfrobot_ultrasonic_serial(WaterSensorData::Entry *data);
+	uint8_t calc_dfrobot_checksum(char *data);
+	void set_last_error(ErrorCode error);
+
+	// Private members
+	ErrorCode _last_error = ERROR_NONE;
 
 	/******************************************************************************
 	 * Init
@@ -80,6 +85,7 @@ namespace WaterLevel
 	RetResult measure_maxbotix_pwm(WaterSensorData::Entry *data)
 	{
 		debug_println(F("Measuring water level (PWM)"));
+		set_last_error(ERROR_NONE);
 
         // Return dummy values switch
         if(FLAGS.MEASURE_DUMMY_WATER_LEVEL)
@@ -87,14 +93,15 @@ namespace WaterLevel
             return measure_dummy(data);
         }
 
-
-		int meas_left = WATER_LEVEL_MEASUREMENTS_COUNT;
+		// Number of valid measurements
+		int cur_sample = 0;
 		int failures = 0;
-		int cur_el = 0;
 
 		int samples[WATER_LEVEL_MEASUREMENTS_COUNT] = {0};
 		float avg = 0;
-		do
+		uint32_t start_ms = millis();
+
+		while(millis() - start_ms < WATER_LEVEL_US_TIMEOUT_MS && cur_sample < WATER_LEVEL_MEASUREMENTS_COUNT)
 		{
 			int level = pulseIn(PIN_WATER_LEVEL_PWM, 1, WATER_LEVEL_PWM_TIMEOUT_MS * 1000);
 			Serial.print(F("Level: "));
@@ -108,25 +115,40 @@ namespace WaterLevel
 			{
 				if(++failures >= WATER_LEVEL_PWM_FAILED_MEAS_LIMIT)
 				{
+					set_last_error(ErrorCode::ERROR_TOO_MANY_INVALID_VALUES);
+					debug_println_e("Too many invalid values, aborting.");
 					return RET_ERROR;
+				}
+				else
+				{
+					debug_println_e("Invalid value, ignoring.");
+					continue;
 				}
 			}
 
 			avg += level;
-			samples[cur_el++] = level;
+			samples[cur_sample++] = level;
 
 			delay(WATER_LEVEL_DELAY_BETWEEN_MEAS_MS);
-		}while(--meas_left > 0);
+		}
+
+		
+		if(millis() - start_ms >= WATER_LEVEL_US_TIMEOUT_MS)
+		{
+			set_last_error(ErrorCode::ERROR_TIMEOUT);
+			debug_println_e(F("Timeout, aborting."));
+			return RET_ERROR;
+		}
 
 		// Print samples
-		for (size_t i = 0; i < WATER_LEVEL_MEASUREMENTS_COUNT; i++)
-		{
+		// for (size_t i = 0; i < WATER_LEVEL_MEASUREMENTS_COUNT; i++)
+		// {
 			// TODO: Temp
 			// Log::log(Log::WATER_LEVEL_RAW_READING, samples[i]);
 
-			debug_print(samples[i]);
-			debug_print(", ");
-		}
+			// debug_print(samples[i]);
+			// debug_print(", ");
+		// }
 		debug_println();
 
 		// Pre-filtered values avg
@@ -150,14 +172,14 @@ namespace WaterLevel
 		{
 			if(samples[i] < (avg - std_dev) || samples[i] > (avg + std_dev))
 			{
-				debug_print(samples[i], DEC);
+				debug_print_i(samples[i], DEC);
 				debug_print(F(" "));
 
 				// Filter outlier
 				samples[i] = -1;
 			}
 		}
-		debug_println();
+		debug_print(F(" "));
 
 		// Calculate avg for valid values
 		float level = 0;
@@ -171,8 +193,10 @@ namespace WaterLevel
 			}
 		}
 
-		if(valid_val_count == 0)
+		if(valid_val_count < WATER_LEVEL_MIN_VALID_MEASUREMENTS)
 		{
+			set_last_error(ErrorCode::ERROR_HIGH_VAL_FLUCTUATION);
+			debug_println_e(F("Too few valid values after filtering."));
 			return RET_ERROR;
 		}
 
@@ -269,31 +293,85 @@ namespace WaterLevel
 
 		int level_avg = 0;
 
-		HardwareSerial us_serial(2);
+		HardwareSerial us_serial(1);
 		us_serial.begin(9600, SERIAL_8N1, PIN_WATER_LEVEL_SERIAL_RX, 0);
+		us_serial.flush();
 
-		for(int i=0; i < 10; i++)
+		uint32_t start_ms = millis();
+		int valid_packets = 0;
+
+		while(millis() - start_ms < WATER_LEVEL_US_TIMEOUT_MS && valid_packets < WATER_LEVEL_MEASUREMENTS_COUNT)
 		{
-			char buff[5] = "";
-			us_serial.readBytes(buff, 4);
-	
-			if(buff[0] != 0xFF)
+			char buff[10] = "";
+
+			int read_bytes = us_serial.readBytes(buff, 8);
+
+			// Not enough bytes read, skip
+			if(read_bytes < 4)
 			{
-				Serial.println(F("Level sensor returned invalid data."));
 				continue;
 			}
 
-			uint16_t level = (buff[1] << 8) | buff[2];
+			// debug_println_i(F("Read bytes: "));
+
+			// for (size_t i = 0; i < read_bytes; i++)
+			// {
+			// 	Serial.printf("%02x ", buff[i]);
+			// }
+
+			// Find packet start
+			char *packet = nullptr;
+			for (size_t i = 0; i < 4; i++)
+			{
+				if(buff[i] == 0xFF)
+				{
+					packet = (char*)&buff[i];
+
+					break;
+				}
+			}
+
+			if(packet == nullptr)
+			{
+				debug_println_i(F("Packet start not found, skipping"));
+				continue;
+			}
+			
+			uint8_t checksum = calc_dfrobot_checksum(packet);
+			if(checksum != packet[3])
+			{
+				debug_print_e(F("Calculated checksum invalid: "));
+				debug_println(checksum, HEX);
+				continue;
+			}
+
+			uint16_t level = (packet[1] << 8) | packet[2];
 			level_avg += level;
+
+			debug_print(F("Current measurement: "));
+			debug_println(level, DEC);
+
+			valid_packets++;
+
+			Serial.println("\n---");
 		}
 
-		level_avg /= 10;
+		us_serial.end();
+
+		if(valid_packets < WATER_LEVEL_MEASUREMENTS_COUNT)
+		{
+			debug_print_e(F("Could not read enough valid values from sensor: "));
+			debug_println(valid_packets);
+			return RET_ERROR;
+		}
+
+		level_avg /= valid_packets;
 		
+		// Convert to cm
+		data->water_level = round(level_avg / 10);
+
 		Serial.print(F("Measured level: "));
 		Serial.println(level_avg, DEC);
-
-		// Convert to cm
-		data->water_level = level_avg / 10;
 
 		return RET_OK;	
 	}
@@ -335,6 +413,8 @@ namespace WaterLevel
 			level_avg += level;
 		}
 
+		us_serial.end();
+
 		level_avg /= MEASUREMENTS;
 
 		Serial.print(F("LEVEL: "));
@@ -343,6 +423,14 @@ namespace WaterLevel
 		data->water_level = level_avg;
 
 		return RET_OK;
+	}
+
+	/******************************************************************************
+	* Calculate dfrobot checksum returned in serial mode
+	******************************************************************************/
+	uint8_t calc_dfrobot_checksum(char *data)
+	{
+		return (data[0] + data[1] + data[2]);
 	}
 
 	/******************************************************************************
@@ -362,4 +450,20 @@ namespace WaterLevel
 
         return RET_OK;
     }
+
+	/******************************************************************************
+	 * Get last error
+	 *****************************************************************************/
+	ErrorCode get_last_error()
+	{
+		return _last_error;	
+	}
+
+	/******************************************************************************
+	* Set last error
+	******************************************************************************/
+	void set_last_error(ErrorCode error)
+	{
+		_last_error = error;
+	}
 }

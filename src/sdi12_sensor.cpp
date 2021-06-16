@@ -229,7 +229,7 @@ const char* Sdi12Sensor::get_buffer()
 }
 
 /******************************************************************************
- * Get last occurred error
+ * Get last error
  *****************************************************************************/
 Sdi12Sensor::ErrorCode Sdi12Sensor::get_last_error()
 {

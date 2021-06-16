@@ -178,6 +178,7 @@ namespace Log
         // RTC sync took place
         // Time after sync is log time
         // Meta1: System time at the start of sync
+        // Meta2: 0 = Manual Sync, 1 = Auto Sync
         RTC_SYNC = 48,
 
         //
@@ -349,7 +350,7 @@ namespace Log
         // Meta1: Found FO node id
         FO_SNIFFER_SCAN_RESULT = 84,
 
-        // FO Scan finished, no 
+        // FO Scan finished
         FO_SNIFFER_SCAN_FINISHED = 85,
 
         // FO enabled status
@@ -394,6 +395,16 @@ namespace Log
         // Meta1: voltage
         // Meta2: Current
         SOLAR_MONITOR_DATA = 95,
+
+        //
+        // Current battery mode
+        // Meta1: Battery mode
+        BATTERY_MDDE = 96,
+
+        //
+        // Data store commit to flash memory failed, possible loss of data.
+        //
+        DATA_STORE_COMMIT_FAILED = 97,
 
         //
         // GSM errors
@@ -476,7 +487,25 @@ namespace Log
          * Wake up count since last aggregated packet 
          * Meta1: Wake up count
          */
-        FO_WAKEUPS = 211
+        FO_WAKEUPS = 211,
+
+        /*
+         * Decided sleep schedule
+         */
+        DECIDED_SLEEP_SCHEDULE = 212,
+
+        /*
+         * Calculating sleep
+         * Meta1: Timestamp used to calc sleep
+         * Meta2: EXT RTC timestamp
+         */
+        CALCULATING_SLEEP = 213,
+
+        /*
+        * Could not calc wake up time
+        * Meta1: 
+        */
+        SLEEP_COULD_NOT_CALC_WAKEUP_TIME = 214
     };
 }
 

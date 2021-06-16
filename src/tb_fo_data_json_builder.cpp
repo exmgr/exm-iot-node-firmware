@@ -22,6 +22,7 @@ RetResult TbFoDataJsonBuilder::add(const FoData::StoreEntry *entry)
 	values[FO_DATA_KEY_WIND_SPEED] = entry->wind_speed;
 	values[FO_DATA_KEY_WIND_GUST] = entry->wind_gust;
 	values[FO_DATA_KEY_UV] = entry->uv;
+	values[FO_DATA_KEY_UV_INDEX] = entry->uv_index;
 	values[FO_DATA_KEY_SOLAR_RADIATION] = entry->solar_radiation;
 
 	// Check the last one, no need to check all, if last doesnt fit into

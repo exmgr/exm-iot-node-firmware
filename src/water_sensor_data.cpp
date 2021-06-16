@@ -70,5 +70,8 @@ namespace WaterSensorData
 
 		debug_print(F("Water level: "));
 		debug_println(data->water_level);
+
+		debug_print(F("Water Presence: "));
+		debug_println(data->presence);
 	}
 }

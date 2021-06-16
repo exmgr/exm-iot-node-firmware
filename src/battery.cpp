@@ -12,6 +12,7 @@ namespace Battery
     //
     // Private members
     //
+    BATTERY_MODE _last_battery_mode = BATTERY_MODE::BATTERY_MODE_NORMAL;
 
     //
     // Private functions
@@ -154,6 +155,7 @@ namespace Battery
 
         if(FLAGS.BATTERY_FORCE_NORMAL_MODE)
         {
+            _last_battery_mode = BATTERY_MODE_NORMAL;
             return BATTERY_MODE::BATTERY_MODE_NORMAL;
         }
         
@@ -167,10 +169,12 @@ namespace Battery
 
         if(pct > BATTERY_LEVEL_LOW)
         {
+            _last_battery_mode = BATTERY_MODE_NORMAL;
             return BATTERY_MODE::BATTERY_MODE_NORMAL;
         }
         else if(pct > BATTERY_LEVEL_SLEEP_CHARGE)
         {
+            _last_battery_mode = BATTERY_MODE_LOW;
             return BATTERY_MODE::BATTERY_MODE_LOW;
         }
         else if(pct == 0 && mv == 0)
@@ -179,12 +183,22 @@ namespace Battery
             debug_println(F("Battery voltage is 0, state unknown, assuming normal battery mode."));
             Utils::serial_style(STYLE_RESET);
 
+            _last_battery_mode = BATTERY_MODE_NORMAL;
             return BATTERY_MODE::BATTERY_MODE_NORMAL;
         }
         else
         {
+            _last_battery_mode = BATTERY_MODE_SLEEP_CHARGE;
             return BATTERY_MODE::BATTERY_MODE_SLEEP_CHARGE;
         }
+    }
+
+    /******************************************************************************
+    * Get battery mode calculated on last get_current_mode call
+    ******************************************************************************/
+    BATTERY_MODE get_last_mode()
+    {
+        return _last_battery_mode;
     }
 
     /******************************************************************************
@@ -204,7 +218,8 @@ namespace Battery
         // Prepare
         //
         // Turn lightning sensor OFF to prevent INTs waking up device
-        Lightning::off();
+        if(FLAGS.LIGHTNING_SENSOR_ENABLED)
+            Lightning::off();
     
         Battery::log_adc();
         Battery::log_solar_adc();
@@ -215,6 +230,7 @@ namespace Battery
         if(FLAGS.SLEEP_MINS_AS_SECS)
             time_to_sleep_ms /= 60;
 
+        esp_sleep_pd_config(esp_sleep_pd_domain_t::ESP_PD_DOMAIN_RTC_PERIPH, esp_sleep_pd_option_t::ESP_PD_OPTION_ON);
         esp_sleep_enable_timer_wakeup((uint64_t)time_to_sleep_ms * 1000);
 
         int wakeup_count = 0;
@@ -249,7 +265,8 @@ namespace Battery
         }
 
         // Turn lightning back ON
-        Lightning::on();
+        if(FLAGS.LIGHTNING_SENSOR_ENABLED)
+            Lightning::on();
     }
 
     /******************************************************************************

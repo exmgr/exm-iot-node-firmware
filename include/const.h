@@ -110,6 +110,7 @@ const char WATER_SENSOR_DATA_KEY_DEPTH_CM[] = "s_depth_cm";
 const char WATER_SENSOR_DATA_KEY_DEPTH_FT[] = "s_depth_ft";
 const char WATER_SENSOR_DATA_KEY_TSS[] = "s_tss";
 const char WATER_SENSOR_DATA_KEY_WATER_LEVEL[] = "s_wl";
+const char WATER_SENSOR_DATA_KEY_WATER_PRESENCE[] = "s_presence";
 
 /******************************************************************************
  * Soil moisture data
@@ -392,7 +393,13 @@ const int WATER_QUALITY_RETRY_WAIT_MS = 1000;
 
 // General
 /** Times to measure (and calculate avg) */
-const int WATER_LEVEL_MEASUREMENTS_COUNT = 10;
+const int WATER_LEVEL_MEASUREMENTS_COUNT = 20;
+
+/** Min number of valid sensor values required for a valid measurement.
+ * If after filtering the number of resulting values is less than this, the measurement
+ * is considered invalid. Must be less than WATER_LEVEL_MEASUREMENTS_COUNT */
+const int WATER_LEVEL_MIN_VALID_MEASUREMENTS = 10;
+
 /** Delay in mS between measurements */
 const int WATER_LEVEL_DELAY_BETWEEN_MEAS_MS = 5;
 /** Max range in centimeters */
@@ -417,6 +424,10 @@ const int WATER_LEVEL_PWM_FAILED_MEAS_LIMIT = 15;
 // Analog channel only
 /** Millivolts per cm */
 const float WATER_LEVEL_MV_PER_MM = (float)3300 / WATER_LEVEL_MAX_RANGE_MM;
+
+/** Max measurement time for uS level sensor. If measurement takes longer, it is considered
+ * failed */
+const int WATER_LEVEL_US_TIMEOUT_MS = 6000;
 
 /******************************************************************************
  * Teros12 sensor
@@ -454,6 +465,7 @@ const char FO_DATA_KEY_WIND_DIR[] = "fo_w_dir";
 const char FO_DATA_KEY_WIND_SPEED[] = "fo_w_speed";
 const char FO_DATA_KEY_WIND_GUST[] = "fo_w_gust";
 const char FO_DATA_KEY_UV[] = "fo_uv";
+const char FO_DATA_KEY_UV_INDEX[] = "fo_uv_index";
 const char FO_DATA_KEY_LIGHT[] = "fo_light";
 const char FO_DATA_KEY_SOLAR_RADIATION[] = "fo_sol_rad";
 

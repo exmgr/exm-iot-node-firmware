@@ -14,7 +14,6 @@ namespace RTC
     float get_external_rtc_temp();
 
     uint32_t get_last_sync_tick();
-    void reset_last_sync_tick();
 
     void print_time();
     void print_temp();

@@ -6,7 +6,7 @@
 #include "sdi12_sensor.h"
 
 /** FW Version */
-const int FW_VERSION = 150;
+const int FW_VERSION = 159;
 
 /******************************************************************************
  * Credentials
@@ -34,7 +34,7 @@ extern const int TB_PORT;
  * Enable data submission through Wifi instead of GSM
  * For debugging purposes
  */
-#define WIFI_DATA_SUBMISSION false
+#define WIFI_DATA_SUBMISSION true
 
 // Main switches
 
@@ -79,6 +79,9 @@ volatile const FLAGS_T FLAGS
     /** Take measurements from water level sensor */
     WATER_LEVEL_SENSOR_ENABLED: false,
 
+    /** Take measurements from water presence sensor */
+    WATER_PRESENCE_SENSOR_ENABLED: false,
+
     /** Take measurements from Atmos41 weather station */
     ATMOS41_ENABLED: false,
 
@@ -103,7 +106,7 @@ volatile const FLAGS_T FLAGS
     EXTERNAL_RTC_ENABLED: true,
 
     /** Submit data to IPFS */
-    IPFS: false
+    IPFS: true
 }; 
 
 /** Print serial comms between the MCU and the GSM module (used by tinyGSM) */
@@ -121,7 +124,7 @@ const char NTP_SERVER[] PROGMEM = "pool.ntp.org";
 
 /** Intervals on which RTC will be automatically synced when RTC auto sync is ON.
  * Interval is checked on call home so it is rounded to call home intervals */
-const char RTC_AUTOSYNC_INTERVAL_MIN = 1440;
+const int RTC_AUTOSYNC_INTERVAL_MIN = 240;
 /** 
  * Channel to use when capturing data from Water Level sensor 
 */

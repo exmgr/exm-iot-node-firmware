@@ -201,6 +201,9 @@ namespace FoSniffer
 			{
 				_packet_buff.add_packet(&_last_decoded_packet);
 				_in_sync = true;
+				
+				Log::log(Log::FO_SNIFFER_SCAN_RESULT, _last_decoded_packet.node_address);
+
 			}
 		}
 

@@ -95,7 +95,7 @@ RetResult FoBuffer::commit_buffer()
     //
     // Build data store entry
     //
-    FoData::StoreEntry entry;
+    FoData::StoreEntry entry = {0};
     
     entry.timestamp = _first_packet_tstamp;
     entry.packets = _packet_count;

@@ -49,6 +49,7 @@
 #include "teros12.h"
 #include "soil_moisture_data.h"
 #include "water_level.h"
+#include "water_presence.h"
 #include "aquatroll.h"
 
 /******************************************************************************
@@ -192,6 +193,7 @@ void setup()
 	GSM::init();
 	WaterSensors::init();
 	WaterLevel::init();
+	WaterPresence::init();
 	Atmos41::init();
 
 	if(FO_SOURCE == FO_SOURCE_SNIFFER)
@@ -258,6 +260,19 @@ void setup()
 
 	///////////////////////////////////////////////////////////////////
 	// Testing area
+	// WaterSensors::on();
+
+	// while(1)
+	// {
+	// 	WaterSensorData::Entry data = {0};
+
+	// 	WaterPresence::measure(&data);
+
+	// 	WaterSensorData::print(&data);
+
+	// 	delay(500);
+	// }
+
 	// GSM::on();
 	// GSM::connect_persist();
 	// CallHome::submit_ipfs();
@@ -430,7 +445,7 @@ void setup()
 	// while(1)
 	// {
 	// 	WaterSensorData::Entry data = {0};
-	// 	// WaterLevel::measure(&data);
+	// 	WaterLevel::measure(&data);
 	// 	Aquatroll::measure(&data);
 
 	// 	// debug_print(F("Level: \t\t\t"));
@@ -495,8 +510,7 @@ void setup()
 	//
 	// Turn on GSM to check if SIM card present and sync time
 	// In debug mode sync time from external RTC
-	// if(FLAGS.DEBUG_MODE && RTC::tstamp_valid(RTC::get_timestamp()))
-	if(0)
+	if(FLAGS.DEBUG_MODE && RTC::tstamp_valid(RTC::get_timestamp()))
 	{
 		debug_println(F("Debug mode, using ext RTC time."));
 		RTC::sync_time_from_ext_rtc();
@@ -652,7 +666,7 @@ void loop()
 
 	// Woke up on IRQ from lightning sensor?
 	// Handle otherwise go back to sleep
-	if(esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0)
+	if(FLAGS.LIGHTNING_SENSOR_ENABLED && esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_EXT0)
 	{
 		Lightning::handle_irq();
 		return;

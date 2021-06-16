@@ -33,14 +33,18 @@ RetResult TbWaterSensorDataJsonBuilder::add(const WaterSensorData::Entry *entry)
 		values[WATER_SENSOR_DATA_KEY_DEPTH_FT] = entry->depth_ft;
 		values[WATER_SENSOR_DATA_KEY_TSS] = entry->tss;
 	}
-	
-	// Check the last one, no need to check all, if last doesnt fit into
-	// the json doc, doc is full already
-	if((values[WATER_SENSOR_DATA_KEY_WATER_LEVEL] = entry->water_level) == false)
+
+	values[WATER_SENSOR_DATA_KEY_WATER_LEVEL] = entry->water_level;
+	values[WATER_SENSOR_DATA_KEY_WATER_PRESENCE] = (int)entry->presence;
+
+	// If lastkey didn't fit into object, object buffer is not large enough
+	if(!values.containsKey(WATER_SENSOR_DATA_KEY_WATER_PRESENCE))
 	{
-		debug_println(F("Could not add sensor data to JSON."));
+		debug_println_e(F("Could not add sensor data to JSON."));
 		return RET_ERROR;
 	}
+
+
 
 	return RET_OK;
 } 

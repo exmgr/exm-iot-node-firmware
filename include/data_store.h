@@ -51,6 +51,11 @@ private:
     //
 
     RetResult update_current_data_file_path();
+
+    File open_file();
+
+    RetResult cleanup_store();
+
     //
     // Vars
     //

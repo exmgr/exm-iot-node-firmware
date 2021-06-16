@@ -41,6 +41,14 @@ namespace Log
 		entry.meta1 = meta1;
 		entry.meta2 = meta2;
 
+		// debug_print_i(F("Log: "));
+		// debug_print(entry.code, DEC);
+		// debug_print(F(" ( "));
+		// debug_print(meta1);
+		// debug_print(F(" , "));
+		// debug_print(meta2);
+		// debug_println(F(" )"));
+
 		uint32_t cur_tstamp = RTC::get_timestamp();
 
 		entry.timestamp = cur_tstamp * 1000LL;
