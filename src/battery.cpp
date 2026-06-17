@@ -25,7 +25,7 @@ namespace Battery
     RetResult init()
     {
         // Configure ADC
-        analogSetCycles(ADC_CYCLES);
+        // analogSetCycles(ADC_CYCLES);
 
         pinMode(PIN_ADC_BAT, ANALOG);
         pinMode(PIN_ADC_SOLAR, ANALOG);

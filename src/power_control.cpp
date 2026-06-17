@@ -16,5 +16,6 @@ namespace PowerControl
         {
             digitalWrite(PIN_WATER_SENSORS_PWR, 1);
         }
+        return RET_OK;
     }
 }

@@ -662,10 +662,10 @@ namespace CallHome
 				// Add geohash to JSON
 				JsonDocument *json_doc = json_builder.get_json_doc();
 				
-				json_doc->getElement(0)["values"]["geohash"] = DEVICE_GEOHASH;
+				(*json_doc)[0]["values"]["geohash"] = DEVICE_GEOHASH;
 
 				// Get timestamp of record
-				uint32_t tstamp = (uint64_t)json_doc->getElement(0)["ts"] / 1000;
+				uint32_t tstamp = (uint64_t)(*json_doc)[0]["ts"] / 1000;
 				
 				json_builder.build(data_buff, sizeof(data_buff), true);
 

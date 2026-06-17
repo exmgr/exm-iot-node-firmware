@@ -3,7 +3,8 @@
 #include <HardwareSerial.h>
 #include "const.h"
 
-#include <HTTPClient.h>
+#include <WiFiClientSecure.h>
+#include "/Users/manos/.platformio/packages/framework-arduinoespressif32/libraries/HTTPClient/src/HTTPClient.h"
 
 /******************************************************************************
 * Subclasses Hardware serial to intercept all printed messages and forward them

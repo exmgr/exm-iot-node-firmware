@@ -18,7 +18,7 @@ RetResult TbLogJsonBuilder::add(const Log::Entry *entry)
 
 	// values["log"] = log_entry;
 
-	if(values.getOrAddMember("log").set(log_entry) == false)
+	if((values["log"] = log_entry) == false)
 	{
         debug_println(F("Could not add log entries to JSON."));
         return RET_ERROR;

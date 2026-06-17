@@ -106,6 +106,7 @@ namespace DeviceConfig
 	RetResult end()
 	{
 		_prefs.end();
+		return RET_OK;
 	}
 
 	/******************************************************************************
@@ -314,6 +315,7 @@ namespace DeviceConfig
 	RetResult set_wakeup_schedule(const SleepScheduler::WakeupScheduleEntry *schedule)
 	{
 		memcpy(_current_config.wakeup_schedule, schedule, sizeof(_current_config.wakeup_schedule));
+		return RET_OK;
 	}
 
 	/******************************************************************************
@@ -359,6 +361,7 @@ namespace DeviceConfig
 	RetResult get_wakeup_schedule(SleepScheduler::WakeupScheduleEntry *schedule)
 	{
 		memcpy(schedule, &_current_config, sizeof(WAKEUP_SCHEDULE_DEFAULT));
+		return RET_OK;
 	}
 
 	/******************************************************************************
@@ -390,6 +393,7 @@ namespace DeviceConfig
 	RetResult set_tb_device_token(char *token)
 	{
 		strncpy(_current_config.tb_device_token, token, sizeof(_current_config.tb_device_token));
+		return RET_OK;
 	}
 
 	/******************************************************************************
@@ -406,6 +410,7 @@ namespace DeviceConfig
 	RetResult set_cellular_apn(char *apn)
 	{
 		strncpy(_current_config.cellular_apn, apn, sizeof(_current_config.cellular_apn));
+		return RET_OK;
 	}
 
 	/******************************************************************************
@@ -422,6 +427,7 @@ namespace DeviceConfig
 	RetResult set_fo_sniffer_id(uint8_t id)
 	{
 		_current_config.fo_sniffer_id = id;
+		return RET_OK;
 	}
 
 	/******************************************************************************
@@ -438,5 +444,6 @@ namespace DeviceConfig
 	RetResult set_fo_enabled(bool enabled)
 	{
 		_current_config.fo_enabled = enabled;
+		return RET_OK;
 	}
 }

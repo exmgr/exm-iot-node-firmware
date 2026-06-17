@@ -44,6 +44,7 @@ namespace WaterLevel
 		}		
 
 		analogReadResolution(12);
+		return RET_OK;
 	}
 
 	/******************************************************************************

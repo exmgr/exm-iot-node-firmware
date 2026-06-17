@@ -209,15 +209,15 @@ RetResult connect()
 		if(FLAGS.NBIOT_MODE)
 		{
 			debug_println(F("NBIoT mode"));
-			_modem.setPreferredMode(38);
-			_modem.setPreferredLTEMode(2);
-			_modem.setOperatingBand(20); 		
+			_modem.setNetworkMode(38); // 38 LTE only
+			_modem.setPreferredMode(2); // 2 NB-IoT
+			_modem.sendAT(GF("+CBANDCFG=\"NB-IOT\",20"));
+			_modem.waitResponse();
 		}
 		else
 		{
 			debug_println(F("GSM mode"));
-			_modem.setPreferredMode(13); //2 Auto // 13 GSM only // 38 LTE only
-
+			_modem.setNetworkMode(13); // 13 GSM only
 		}
 	#endif
 

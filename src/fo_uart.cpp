@@ -29,6 +29,8 @@ namespace FoUart
     {
 		pinMode(PIN_FO_UART_REQ_DATA, OUTPUT);
 		digitalWrite(PIN_FO_UART_REQ_DATA, 0);
+
+		return RET_OK;
     }
 
     /******************************************************************************
@@ -82,7 +84,7 @@ namespace FoUart
 		digitalWrite(PIN_FO_UART_REQ_DATA, 1);
 
 		HardwareSerial uart(FO_UART_PORT);
-		uart.begin(9600, SERIAL_8N1, PIN_FO_UART_RX, 999, false, FO_UART_RX_TIMEOUT_MS);
+		uart.begin(9600, SERIAL_8N1, PIN_FO_UART_RX, -1, false, FO_UART_RX_TIMEOUT_MS);
 
 		// Rx buffer, must fit 1 line of response
 		char buff[128] = "";

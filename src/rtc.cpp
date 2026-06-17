@@ -309,7 +309,7 @@ namespace RTC
             return RET_ERROR;
         }
 
-        unsigned long timestamp = 0;
+        uint32_t timestamp = 0;
         sscanf(resp, "%u", &timestamp);
 
 		// Calculate offset
@@ -347,7 +347,7 @@ namespace RTC
             return RET_ERROR;
         }
 
-        uint32_t ext_rtc_tstamp = _ext_rtc.GetDateTime().Epoch32Time();
+        uint32_t ext_rtc_tstamp = _ext_rtc.GetDateTime().Unix32Time();
 
         if(!tstamp_valid(ext_rtc_tstamp))
         {
@@ -423,7 +423,7 @@ namespace RTC
         _ext_rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone); 
 
         debug_print(F("External RTC init complete. Time: "));
-        debug_println(_ext_rtc.GetDateTime().Epoch32Time());
+        debug_println(_ext_rtc.GetDateTime().Unix32Time());
  
         return RET_OK;
     }
@@ -436,7 +436,7 @@ namespace RTC
         // External RTC counts time in secs from 2000, subtract offset
         uint32_t secs_since_2000 = timestamp - SECONDS_IN_2000;
         
-        _ext_rtc.SetDateTime(secs_since_2000);
+        _ext_rtc.SetDateTime(RtcDateTime(secs_since_2000));
         if(_ext_rtc.LastError() != 0)
         {
             debug_print(F("Could not set ext RTC time to: "));
@@ -487,7 +487,7 @@ namespace RTC
      *****************************************************************************/
     uint32_t get_external_rtc_timestamp()
     {
-        return _ext_rtc.GetDateTime().Epoch32Time();
+        return _ext_rtc.GetDateTime().Unix32Time();
     }
 
     /******************************************************************************

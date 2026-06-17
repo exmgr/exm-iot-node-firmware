@@ -19,6 +19,7 @@ namespace WaterPresence
 	RetResult init()
 	{
         pinMode(PIN_WATER_PRESENCE, INPUT);
+        return RET_OK;
 	}
 
 	/******************************************************************************

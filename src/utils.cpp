@@ -323,6 +323,7 @@ namespace Utils
 		DeviceConfig::commit();
 
 		ESP.restart();
+		return RET_OK;
 	}
 
 	/******************************************************************************

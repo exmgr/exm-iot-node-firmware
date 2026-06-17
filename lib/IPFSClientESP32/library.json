@@ -1,0 +1,27 @@
+{
+    "name": "IPFSClientESP32",
+    "version": "0.1.1",
+    "description": "ESP32 library for interacting with IPFS.",
+    "keywords": "ipfs",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/exmgr/ipfs-client-esp32"
+    },
+    "authors":
+    [
+      {
+        "name": "EX MACHINA Nikos Tsiligaridis",
+        "email": "nikos@exm.gr",
+        "url": "https://www.exm.gr",
+        "maintainer": true
+      }
+    ],
+    "license": "Apache-2.0",
+    "homepage": "https://www.exm.gr",
+    "dependencies": {
+        "bblanchon/ArduinoJson": "^6.17.3"
+    },
+    "frameworks": "*",
+    "platforms": "espressif32"
+  }
